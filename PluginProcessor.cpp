@@ -30,7 +30,7 @@ CompSynthAudioProcessor::CompSynthAudioProcessor()
 
 CompSynthAudioProcessor::~CompSynthAudioProcessor()
 {
-
+    //.addVoice - The object passed in will be managed by the synthesiser, which will delete it later on when no longer needed. The caller should not retain a pointer to the voice.
 }
 
 //==============================================================================
@@ -155,14 +155,16 @@ void CompSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 
     for (int i = 0; i < synth.getNumVoices(); i++)
     {
-        if (auto voice = dynamic_cast<SynthVoice*>(synth.getVoice(i)))
+        if (auto voice = dynamic_cast<SynthVoice*>(synth.getVoice(i)))      //auto = SynthVoice*
         {
-            auto& attack = *vTreeState.getRawParameterValue("ATTACK");
-            auto& decay = *vTreeState.getRawParameterValue("DECAY");
-            auto& sustain = *vTreeState.getRawParameterValue("SUSTAIN");
+            auto& attack = *vTreeState.getRawParameterValue("ATTACK");      //auto = struct std::atomic<float>
+            auto& decay = *vTreeState.getRawParameterValue("DECAY");        //.getRawParameterValue retutns pointer, 
+            auto& sustain = *vTreeState.getRawParameterValue("SUSTAIN");    //& makes a refernce to pointer
             auto& release = *vTreeState.getRawParameterValue("RELEASE");
+            auto& gain = *vTreeState.getRawParameterValue("GAIN");
 
-            voice->updateADSR(attack, decay, sustain, release); //atomic
+            voice->updateADSR(attack, decay, sustain, release); //atomic /////// -> access members of a structure through a pointer (. for pointer)
+            voice->updateGain(gain);
 
             //Osc controls
             //ADSR
@@ -235,23 +237,25 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompSynthAudioProcessor::cre
 {
     juce::StringArray oscArray{"Sine", "Saw", "Square", "Combo"};
 
-    //Switch Oscillators
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
-    params.push_back(std::make_unique <juce::AudioParameterChoice>("OSC", "osc", oscArray, 1));
+
+    //Switch Oscillators
+    params.push_back(std::make_unique<juce::AudioParameterChoice>("OSC", "osc", oscArray, 1));
 
     //Attack
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("ATTACK", "Attack", juce::NormalisableRange<float> { 0.1f, 1.0f, }, 0.1f));    //paramID, paramName, paramRange, defaultValue
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("ATTACK", "Attack", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.1f));    //paramID, paramName, paramRange, defaultValue
 
     //Decay
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("DECAY", "Decay", juce::NormalisableRange<float> { 0.1f, 1.0f, }, 0.1f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("DECAY", "Decay", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.1f));
 
     //Sustain
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("SUSTAIN", "Sustain", juce::NormalisableRange<float> { 0.1f, 1.0f, }, 0.1f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("SUSTAIN", "Sustain", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.1f));
 
     //Release
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("RELEASE", "Release", juce::NormalisableRange<float> { 0.1f, 3.0f, }, 0.4f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("RELEASE", "Release", juce::NormalisableRange<float> { 0.01f, 3.0f, }, 0.4f));
     
-    //params.push_back(std::make_unique<juce::AudioParameterFloat>("GAIN", "gain", 0.0f, 1.0f, 0.5f));    //paramID, paramName, minValue, maxvalue, defaultValue
+    //Gain
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("GAIN", "gain", juce::NormalisableRange<float> { 0.0f, 1.0f, }, 0.3f));    //paramID, paramName, minValue, maxvalue, defaultValue
 
     return { params.begin(), params.end() };
 

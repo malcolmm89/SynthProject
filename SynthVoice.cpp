@@ -46,32 +46,50 @@ void SynthVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int outpu
     spec.numChannels = outputChannels;
 
     osc.prepare(spec);
-    gain.prepare(spec);
+    masterGain.prepare(spec);
 
-    gain.setGainLinear(0.3f);
+    //masterGain.setGainLinear(0.3f);
 
 
     isPerpared = true;
 }
 
-void SynthVoice::updateADSR(const float attack, const float decay, const float sustain, const float release)
+void SynthVoice::updateADSR(float attack, float decay, float sustain, float release)
 {
-    adsrParams.attack = attack;
-    adsrParams.decay = decay;
-    adsrParams.sustain = sustain;
-    adsrParams.release = release;
+    adsr.updateADSR(attack, decay, sustain, release);
+}
 
-    adsr.setParameters(adsrParams);
+void SynthVoice::updateGain(float gain)
+{
+    masterGain.updateGain(gain);
 }
 
 void SynthVoice::renderNextBlock(juce::AudioBuffer< float > &outputBuffer, int startSample, int numSamples) 
 {
     jassert(isPerpared); //makes sure prepare to play has been called and is working properly
+
+    if (!isVoiceActive())
+    {
+        return;
+    }
+
+    clickBuffer.setSize(outputBuffer.getNumChannels(), numSamples, false, false, true);
+    clickBuffer.clear();
     
-    juce::dsp::AudioBlock<float> audioBlock{ outputBuffer };
+    juce::dsp::AudioBlock<float> audioBlock{ clickBuffer };
 
     osc.process(juce::dsp::ProcessContextReplacing<float>(audioBlock));
-    gain.process(juce::dsp::ProcessContextReplacing<float>(audioBlock));
-    adsr.applyEnvelopeToBuffer(outputBuffer, startSample, numSamples);
+    masterGain.process(juce::dsp::ProcessContextReplacing<float>(audioBlock));
+    adsr.applyEnvelopeToBuffer(clickBuffer, 0, clickBuffer.getNumSamples());
+
+    for (int channel = 0; channel < outputBuffer.getNumChannels(); channel++)
+    {
+        outputBuffer.addFrom(channel, startSample, clickBuffer, channel, 0, numSamples);
+
+        if (!adsr.isActive())
+        {
+            clearCurrentNote();
+        }
+    }
  
 }

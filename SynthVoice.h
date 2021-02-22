@@ -11,6 +11,8 @@
 #pragma once
 #include <JuceHeader.h>
 #include "SynthSound.h"
+#include "Data/AdsrData.h"
+#include "Data/GainData.h"
 
 class SynthVoice : public juce::SynthesiserVoice 
 {
@@ -18,7 +20,7 @@ class SynthVoice : public juce::SynthesiserVoice
 public:
     bool canPlaySound(juce::SynthesiserSound* sound) override;
 
-    void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound * sound, int currentPitchPosition) override;
+    void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound, int currentPitchPosition) override;
 
     void stopNote(float velocity, bool allowTailOff) override;
 
@@ -30,14 +32,17 @@ public:
 
     void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override;
 
-    void updateADSR(const float attack, const float decay, const float sustain, const float release);
+    void updateADSR(float attack, float decay, float sustain, float release);   //Not pure virtual function
+
+    void updateGain(float gain);
 
 
 private:
-    juce::ADSR adsr;
-    juce::ADSR::Parameters adsrParams;
 
-    //juce::dsp::Oscillator<float> osc{ [](float x) {return std::sin(x); } };   //Ine
+    AdsrData adsr;
+    juce::AudioBuffer<float> clickBuffer;
+
+    //juce::dsp::Oscillator<float> osc{ [](float x) {return std::sin(x); } };   //Sine
     
     juce::dsp::Oscillator<float> osc{ [](float x) {return x / juce::MathConstants<float>::pi; } };  //Saw
     
@@ -45,7 +50,7 @@ private:
     
     //juce::dsp::Oscillator<float> osc{ [](float x) {return x < 0.0f ? -1.0f : 1.0f * (x/juce::MathConstants<float>::pi); } };  //Sqaure * Saw
 
-    juce::dsp::Gain<float> gain;
+    GainData masterGain;
 
     bool isPerpared { false };
 
