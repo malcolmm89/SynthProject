@@ -12,6 +12,7 @@
 #include "PluginProcessor.h"
 #include "UI/AdsrControls.h"
 #include "UI/GainControls.h"
+#include "UI/OscControls.h"
 
 //==============================================================================
 /**
@@ -29,11 +30,9 @@ public:
 private:
     
     CompSynthAudioProcessor& audioProcessor;    //refernce to audio processor
+    OscControls osc;
     AdsrControls adsr;
     GainControls masterGain;
-    juce::ComboBox oscSelect;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> oscAttachment;
-
-
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CompSynthAudioProcessorEditor)
 };

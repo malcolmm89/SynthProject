@@ -25,7 +25,12 @@ CompSynthAudioProcessor::CompSynthAudioProcessor()
 #endif                                                                              //refrence tp processor want to connect to (one we are in right now), not using undoManager,         what we call the value tree,     createParams returns ParameterLayout      
 {
     synth.addSound(new SynthSound());
-    synth.addVoice(new SynthVoice());
+    //synth.addVoice(new SynthVoice());
+
+    for (int i = 0; i < 6; i++)
+    {
+        synth.addVoice(new SynthVoice());
+    }
 }
 
 CompSynthAudioProcessor::~CompSynthAudioProcessor()
@@ -163,13 +168,24 @@ void CompSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
             auto& release = *vTreeState.getRawParameterValue("RELEASE");
             auto& gain = *vTreeState.getRawParameterValue("GAIN");
 
+            auto& oscType = *vTreeState.getRawParameterValue("OSCTYPE");
+            auto& fmFreq = *vTreeState.getRawParameterValue("FMFREQ");
+            auto& fmGain = *vTreeState.getRawParameterValue("FMGAIN");
+
             voice->updateADSR(attack, decay, sustain, release); //atomic /////// -> access members of a structure through a pointer (. for pointer)
             voice->updateGain(gain);
-
-            //Osc controls
-            //ADSR
-            //LFO
+            voice->getOsc().setOscType(oscType);
+            voice->getOsc().setFmParams(fmGain, fmFreq);
         }
+
+    }
+
+    for (const juce::MidiMessageMetadata metadata : midiMessages)
+    {
+        if (metadata.numBytes == 3)
+        {
+            juce::Logger::writeToLog("SampleStamp: " + metadata.getMessage().getDescription());
+        }        
     }
        
     synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
@@ -239,9 +255,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompSynthAudioProcessor::cre
 
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
-    //Switch Oscillators
-    params.push_back(std::make_unique<juce::AudioParameterChoice>("OSC", "osc", oscArray, 1));
-
     //Attack
     params.push_back(std::make_unique<juce::AudioParameterFloat>("ATTACK", "Attack", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.1f));    //paramID, paramName, paramRange, defaultValue
 
@@ -255,7 +268,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompSynthAudioProcessor::cre
     params.push_back(std::make_unique<juce::AudioParameterFloat>("RELEASE", "Release", juce::NormalisableRange<float> { 0.01f, 3.0f, }, 0.4f));
     
     //Gain
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("GAIN", "gain", juce::NormalisableRange<float> { 0.0f, 1.0f, }, 0.3f));    //paramID, paramName, minValue, maxvalue, defaultValue
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("GAIN", "gain", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.07f));    //paramID, paramName, minValue, maxvalue, defaultValue
+
+    //Osc Select
+    params.push_back(std::make_unique<juce::AudioParameterChoice>("OSCTYPE", "Osc1", oscArray, 1));
+
+    //FM
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("FMFREQ", "FM Freq", juce::NormalisableRange<float> { 0.0f, 1000.0f, }, 0.0f));
+    //FM Depth
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("FMGAIN", "FM Gain", juce::NormalisableRange<float> { 0.0f, 1000.0f, }, 0.0f));
+
 
     return { params.begin(), params.end() };
 

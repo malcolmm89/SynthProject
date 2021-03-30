@@ -13,6 +13,7 @@
 #include "SynthSound.h"
 #include "Data/AdsrData.h"
 #include "Data/GainData.h"
+#include "Data/OscData.h"
 
 class SynthVoice : public juce::SynthesiserVoice 
 {
@@ -36,20 +37,15 @@ public:
 
     void updateGain(float gain);
 
+    OscData& getOsc() { return osc; }
+
+    GainData& getGain() { return masterGain; }
 
 private:
 
     AdsrData adsr;
     juce::AudioBuffer<float> clickBuffer;
-
-    //juce::dsp::Oscillator<float> osc{ [](float x) {return std::sin(x); } };   //Sine
-    
-    juce::dsp::Oscillator<float> osc{ [](float x) {return x / juce::MathConstants<float>::pi; } };  //Saw
-    
-    //juce::dsp::Oscillator<float> osc{ [](float x) {return x < 0.0f ? -1.0f : 1.0f; } };   //Square
-    
-    //juce::dsp::Oscillator<float> osc{ [](float x) {return x < 0.0f ? -1.0f : 1.0f * (x/juce::MathConstants<float>::pi); } };  //Sqaure * Saw
-
+    OscData osc;
     GainData masterGain;
 
     bool isPerpared { false };

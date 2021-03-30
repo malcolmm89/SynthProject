@@ -17,7 +17,7 @@ bool SynthVoice::canPlaySound(juce::SynthesiserSound* sound)
 
 void SynthVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound, int currentPitchPosition) 
 {
-    osc.setFrequency(juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber));
+    osc.setOscFreq(midiNoteNumber);
     adsr.noteOn();
 }
 
@@ -45,10 +45,11 @@ void SynthVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int outpu
     spec.sampleRate = sampleRate;
     spec.numChannels = outputChannels;
 
-    osc.prepare(spec);
+    osc.prepareToPlay(spec);
+    masterGain.prepareToPlay(spec);
     masterGain.prepare(spec);
 
-    //masterGain.setGainLinear(0.3f);
+    masterGain.setGainLinear(0.07f);
 
 
     isPerpared = true;
@@ -78,7 +79,7 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer< float > &outputBuffer, int s
     
     juce::dsp::AudioBlock<float> audioBlock{ clickBuffer };
 
-    osc.process(juce::dsp::ProcessContextReplacing<float>(audioBlock));
+    osc.getNextAudioBlock(audioBlock);
     masterGain.process(juce::dsp::ProcessContextReplacing<float>(audioBlock));
     adsr.applyEnvelopeToBuffer(clickBuffer, 0, clickBuffer.getNumSamples());
 

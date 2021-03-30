@@ -14,7 +14,6 @@
 //==============================================================================
 GainControls::GainControls(juce::AudioProcessorValueTreeState& vTreeState)
 {
-    
     gainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(vTreeState, "GAIN", gainSlider);
     setSlider(gainSlider);
 }
