@@ -14,6 +14,7 @@
 #include "Data/AdsrData.h"
 #include "Data/GainData.h"
 #include "Data/OscData.h"
+#include "Data/FilterData.h"
 
 class SynthVoice : public juce::SynthesiserVoice 
 {
@@ -29,17 +30,21 @@ public:
 
     void pitchWheelMoved(int newPitchWheelValue) override;
 
-    void prepareToPlay(double samplRate, int samplesPerBlock, int outputChannels); //not coming from SynthesiserVoice so do not override
+    void prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels); //not coming from SynthesiserVoice so do not override
 
     void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override;
 
     void updateADSR(float attack, float decay, float sustain, float release);   //Not pure virtual function
 
-    void updateGain(float gain);
+    //void updateGain(float gain);
+
+    //void updateFilter(int filterType, float filterFreq, float reso);
 
     OscData& getOsc() { return osc; }
 
     GainData& getGain() { return masterGain; }
+
+    //FilterData& getFilter() { return filter; }
 
 private:
 
@@ -47,6 +52,7 @@ private:
     juce::AudioBuffer<float> clickBuffer;
     OscData osc;
     GainData masterGain;
+    //FilterData filter;
 
     bool isPerpared { false };
 

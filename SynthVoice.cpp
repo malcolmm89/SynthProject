@@ -46,9 +46,11 @@ void SynthVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int outpu
     spec.numChannels = outputChannels;
 
     osc.prepareToPlay(spec);
-    masterGain.prepareToPlay(spec);
-    masterGain.prepare(spec);
 
+    //filter.prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
+
+    //masterGain.prepareToPlay(spec);
+    //masterGain.prepare(spec);
     masterGain.setGainLinear(0.07f);
 
 
@@ -59,11 +61,22 @@ void SynthVoice::updateADSR(float attack, float decay, float sustain, float rele
 {
     adsr.updateADSR(attack, decay, sustain, release);
 }
-
+/*
 void SynthVoice::updateGain(float gain)
 {
     masterGain.updateGain(gain);
 }
+*/
+/*
+void SynthVoice::updateFilter(int filterType, float filterFreq, float reso)
+{
+    //filter.setParams(filterType, filterFreq, reso);
+
+    //juce::Logger::writeToLog("FilterType is " + filterType);
+    //juce::Logger::writeToLog("FilterFreq is " + FilterData::getFilterFeq());
+
+}
+*/
 
 void SynthVoice::renderNextBlock(juce::AudioBuffer< float > &outputBuffer, int startSample, int numSamples) 
 {

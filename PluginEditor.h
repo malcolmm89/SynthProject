@@ -13,6 +13,7 @@
 #include "UI/AdsrControls.h"
 #include "UI/GainControls.h"
 #include "UI/OscControls.h"
+#include "UI/FilterControls.h"
 
 //==============================================================================
 /**
@@ -33,6 +34,7 @@ private:
     OscControls osc;
     AdsrControls adsr;
     GainControls masterGain;
+    FilterControls filter;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CompSynthAudioProcessorEditor)
 };

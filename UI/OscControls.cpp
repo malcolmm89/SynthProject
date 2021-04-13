@@ -12,13 +12,14 @@
 #include "OscControls.h"
 
 //==============================================================================
-OscControls::OscControls(juce::AudioProcessorValueTreeState& vTreeState, juce::String selectorID, juce::String fmFreqId, juce::String fmGainId)
+OscControls::OscControls(juce::AudioProcessorValueTreeState& vTreeState, juce::String selectorID, juce::String gainId, juce::String fmFreqId, juce::String fmGainId)
 {
     juce::StringArray oscArray{ "Sine", "Saw", "Square", "Combo" };
     oscSelector.addItemList(oscArray, 1);
     addAndMakeVisible(oscSelector);
-    oscSelectorAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(vTreeState, selectorID, oscSelector);
-    
+    oscSelectorAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(vTreeState, selectorID, oscSelector);
+
+    setKnob(gainKnob, gainLabel, vTreeState, gainId, gainAttach);
     //fm
     setKnob(fmFreqKnob, fmFreaqLabel, vTreeState, fmFreqId, fmFreqAttach);
     setKnob(fmGainKnob, fmGainLabel, vTreeState, fmGainId, fmGainAttach);
@@ -43,6 +44,7 @@ void OscControls::resized()
     fmFreaqLabel.setBounds(fmFreqKnob.getX(), fmFreqKnob.getY() - 20, fmFreqKnob.getWidth(), 20);
     fmGainKnob.setBounds(fmFreqKnob.getRight(), 80, 100, 90);
     fmGainLabel.setBounds(fmGainKnob.getX(), fmGainKnob.getY() - 20, fmGainKnob.getWidth(), 20);
+    gainKnob.setBounds(50, 150, 100, 90);
 }
 
 void OscControls::setKnob(juce::Slider& knob, juce::Label& label, juce::AudioProcessorValueTreeState& vTreeState,

@@ -11,13 +11,15 @@
 
 //==============================================================================
 CompSynthAudioProcessorEditor::CompSynthAudioProcessorEditor (CompSynthAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), osc(audioProcessor.vTreeState, "OSCTYPE", "FMFREQ", "FMGAIN"), adsr(audioProcessor.vTreeState), masterGain(audioProcessor.vTreeState)
+    : AudioProcessorEditor (&p), audioProcessor (p), osc(audioProcessor.vTreeState, "OSCTYPE", "OSCGAIN", "FMFREQ", "FMGAIN"), adsr(audioProcessor.vTreeState), 
+        masterGain(audioProcessor.vTreeState), filter(audioProcessor.vTreeState, "FILTERTYPE", "FILTERFREQ", "RESO")
 {
-    setSize (500, 400);
+    setSize (1000, 600);
    
     addAndMakeVisible(osc);
     addAndMakeVisible(adsr);
     //addAndMakeVisible(masterGain);
+    addAndMakeVisible(filter);
 }
 
 CompSynthAudioProcessorEditor::~CompSynthAudioProcessorEditor()
@@ -33,7 +35,8 @@ void CompSynthAudioProcessorEditor::paint (juce::Graphics& g)
 
 void CompSynthAudioProcessorEditor::resized()
 {
-    osc.setBounds(10, 10, 150, 200);
+    osc.setBounds(10, 10, 200, 300);
+    filter.setBounds(osc.getRight(), 10, 200, 300);
     adsr.setBounds(getWidth() / 2, 0, getWidth() / 2, getHeight());
     masterGain.setBounds(50, 0, getWidth() / 3, getHeight());
   

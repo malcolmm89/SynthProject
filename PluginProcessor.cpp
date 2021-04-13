@@ -8,8 +8,6 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-//#include "SynthVoice.h"
-//#include "SynthSound.h"
 
 //==============================================================================
 CompSynthAudioProcessor::CompSynthAudioProcessor()
@@ -25,8 +23,7 @@ CompSynthAudioProcessor::CompSynthAudioProcessor()
 #endif                                                                              //refrence tp processor want to connect to (one we are in right now), not using undoManager,         what we call the value tree,     createParams returns ParameterLayout      
 {
     synth.addSound(new SynthSound());
-    //synth.addVoice(new SynthVoice());
-
+   
     for (int i = 0; i < 6; i++)
     {
         synth.addVoice(new SynthVoice());
@@ -115,6 +112,13 @@ void CompSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
             voice->prepareToPlay(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
         }
     }
+
+    filter.prepareToPlay(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
+
+    //juce::dsp::ProcessSpec spec;
+    //spec.maximumBlockSize = samplesPerBlock;
+    //spec.sampleRate = sampleRate;
+    //spec.numChannels = getTotalNumOutputChannels();
 }
 
 void CompSynthAudioProcessor::releaseResources()
@@ -166,16 +170,24 @@ void CompSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
             auto& decay = *vTreeState.getRawParameterValue("DECAY");        //.getRawParameterValue retutns pointer, 
             auto& sustain = *vTreeState.getRawParameterValue("SUSTAIN");    //& makes a refernce to pointer
             auto& release = *vTreeState.getRawParameterValue("RELEASE");
-            auto& gain = *vTreeState.getRawParameterValue("GAIN");
+            //auto& gain = *vTreeState.getRawParameterValue("GAIN");
 
             auto& oscType = *vTreeState.getRawParameterValue("OSCTYPE");
+            auto& oscGain = *vTreeState.getRawParameterValue("OSCGAIN");
             auto& fmFreq = *vTreeState.getRawParameterValue("FMFREQ");
             auto& fmGain = *vTreeState.getRawParameterValue("FMGAIN");
 
+            //auto& filterType = *vTreeState.getRawParameterValue("FILTERTYPE");
+            //auto& filterFreq = *vTreeState.getRawParameterValue("FILTERFREQ");
+            //auto& reso = *vTreeState.getRawParameterValue("RESO");
+
             voice->updateADSR(attack, decay, sustain, release); //atomic /////// -> access members of a structure through a pointer (. for pointer)
-            voice->updateGain(gain);
+            //voice->updateGain(gain);
             voice->getOsc().setOscType(oscType);
+            voice->getOsc().setGain(oscGain);
             voice->getOsc().setFmParams(fmGain, fmFreq);
+            //voice->updateFilter(filterType, filterFreq, reso);
+            //voice->getFilter().setParams(filterType, filterFreq, reso);
         }
 
     }
@@ -190,30 +202,12 @@ void CompSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
        
     synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 
-    /*
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
+    auto& filterType = *vTreeState.getRawParameterValue("FILTERTYPE");
+    auto& filterFreq = *vTreeState.getRawParameterValue("FILTERFREQ");
+    auto& reso = *vTreeState.getRawParameterValue("RESO");
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
-    }
-    */
-
+    filter.setParams(filterType, filterFreq, reso);
+    filter.processFilter(buffer);
 }
 
 //==============================================================================
@@ -252,32 +246,37 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 juce::AudioProcessorValueTreeState::ParameterLayout CompSynthAudioProcessor::createParams()
 {
     juce::StringArray oscArray{"Sine", "Saw", "Square", "Combo"};
+    juce::StringArray filterArray{ "Low Pass", "High Pass", "Band Pass" };
 
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
     //Attack
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("ATTACK", "Attack", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.1f));    //paramID, paramName, paramRange, defaultValue
-
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("ATTACK", "Attack", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.01f));    //paramID, paramName, paramRange, defaultValue
     //Decay
     params.push_back(std::make_unique<juce::AudioParameterFloat>("DECAY", "Decay", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.1f));
-
     //Sustain
     params.push_back(std::make_unique<juce::AudioParameterFloat>("SUSTAIN", "Sustain", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.1f));
-
     //Release
     params.push_back(std::make_unique<juce::AudioParameterFloat>("RELEASE", "Release", juce::NormalisableRange<float> { 0.01f, 3.0f, }, 0.4f));
     
     //Gain
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("GAIN", "gain", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.07f));    //paramID, paramName, minValue, maxvalue, defaultValue
+    //params.push_back(std::make_unique<juce::AudioParameterFloat>("GAIN", "gain", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.07f));    //paramID, paramName, minValue, maxvalue, defaultValue
 
     //Osc Select
     params.push_back(std::make_unique<juce::AudioParameterChoice>("OSCTYPE", "Osc1", oscArray, 1));
-
+    //Osc Gain
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("OSCGAIN", "Osc Gain", juce::NormalisableRange<float> { -40.0f, 0.2f, 0.1f, }, -25.0f));
     //FM
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("FMFREQ", "FM Freq", juce::NormalisableRange<float> { 0.0f, 1000.0f, }, 0.0f));
-    //FM Depth
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("FMGAIN", "FM Gain", juce::NormalisableRange<float> { 0.0f, 1000.0f, }, 0.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("FMFREQ", "FM Freq", juce::NormalisableRange<float> { 0.0f, 1000.0f, 0.01f, 0.3f}, 0.0f));
+    //FM Gain
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("FMGAIN", "FM Gain", juce::NormalisableRange<float> { 0.0f, 1000.0f, 0.01f, 0.3f}, 0.0f));
 
+    //Filter Select
+    params.push_back(std::make_unique<juce::AudioParameterChoice>("FILTERTYPE", "Filter Type", filterArray, 0));
+    //Filter Freq
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("FILTERFREQ", "Filter Freq", juce::NormalisableRange<float> { 20.0f, 20000.0f, 0.1f, 0.6f, }, 200.0f));
+    //Resonence
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("RESO", "Reso", juce::NormalisableRange<float> { 0.1f, 10.0f, 0.1f, }, 0.1f));
 
     return { params.begin(), params.end() };
 

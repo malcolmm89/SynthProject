@@ -14,6 +14,7 @@ void OscData::prepareToPlay(juce::dsp::ProcessSpec& spec)
 {   
     prepare(spec);
     fm.prepare(spec);
+    gain.prepare(spec);
 }
 
 void OscData::setOscType(int choice)
@@ -39,6 +40,11 @@ void OscData::setOscType(int choice)
         jassertfalse; //Something is wrong
     }
 
+}
+
+void OscData::setGain(float gaindB)
+{
+    gain.setGainDecibels(gaindB);
 }
 
 void OscData::setOscFreq(int midiNoteNumber)

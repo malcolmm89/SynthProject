@@ -18,7 +18,7 @@
 class OscControls  : public juce::Component
 {
 public:
-    OscControls(juce::AudioProcessorValueTreeState& vTreeState, juce::String selectorID, juce::String fmFreqId, juce::String fmGainId);
+    OscControls(juce::AudioProcessorValueTreeState& vTreeState, juce::String selectorID, juce::String gainId, juce::String fmFreqId, juce::String fmGainId);
     ~OscControls() override;
 
     void paint (juce::Graphics&) override;
@@ -26,11 +26,14 @@ public:
 
 private:
     juce::ComboBox oscSelector;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> oscSelectorAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> oscSelectorAttach;
 
+    juce::Slider gainKnob;
     juce::Slider fmFreqKnob;
     juce::Slider fmGainKnob;
 
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> gainAttach;
+    juce::Label gainLabel{ "Gain", "Gain" };
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> fmFreqAttach;
     juce::Label fmFreaqLabel{ "Fm Freq", "fm Freq" };
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> fmGainAttach;
