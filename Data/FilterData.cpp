@@ -13,7 +13,7 @@
 void FilterData::prepareToPlay(double samplesRate, int samplesPerBlock, int numChannels)
 {
     filter.reset();
-    
+
     juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
     spec.sampleRate = samplesRate;
@@ -26,11 +26,11 @@ void FilterData::prepareToPlay(double samplesRate, int samplesPerBlock, int numC
 void FilterData::processFilter(juce::AudioBuffer<float>& filterBuffer)
 {
     jassert(isPrepared);
-    juce::dsp::AudioBlock<float> block { filterBuffer };
+    juce::dsp::AudioBlock<float> block{ filterBuffer };
     filter.process(juce::dsp::ProcessContextReplacing<float> { block });    //replaces data in buffer
 }
 
-void FilterData::setParams(int filterType, float filterFreq, float reso)
+void FilterData::setParams(int filterType, float filterFreq, float reso, float modEnv)
 {
 
     if (filterType == 0)
@@ -50,8 +50,11 @@ void FilterData::setParams(int filterType, float filterFreq, float reso)
         jassertfalse; //Something is wrong
     }
 
-    //selectFilter(filterType);
-    filter.setCutoffFrequency(filterFreq);
+    float freqEnv = filterFreq * modEnv;
+    freqEnv = std::fmax(freqEnv, 20.0f);    //returns greatest value
+    freqEnv = std::fmin(freqEnv, 20000.0f); //returns smallest value
+
+    filter.setCutoffFrequency(freqEnv);
     filter.setResonance(reso);
 }
 

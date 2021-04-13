@@ -10,23 +10,25 @@
 
 #include "SynthVoice.h"
 
-bool SynthVoice::canPlaySound(juce::SynthesiserSound* sound) 
+bool SynthVoice::canPlaySound(juce::SynthesiserSound* sound)
 {
     return dynamic_cast<juce::SynthesiserSound*>(sound) != nullptr;
 }
 
-void SynthVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound, int currentPitchPosition) 
+void SynthVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound, int currentPitchPosition)
 {
     osc.setOscFreq(midiNoteNumber);
     adsr.noteOn();
+    filterAdsr.noteOn();
 }
 
-void SynthVoice::stopNote(float velocity, bool allowTailOff) 
+void SynthVoice::stopNote(float velocity, bool allowTailOff)
 {
     adsr.noteOff();
+    filterAdsr.noteOff();
 }
 
-void SynthVoice::controllerMoved(int controllerNumber, int newControllerValue) 
+void SynthVoice::controllerMoved(int controllerNumber, int newControllerValue)
 {
 
 }
@@ -38,16 +40,15 @@ void SynthVoice::pitchWheelMoved(int newPitchWheelValue)
 
 void SynthVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels)
 {
-    adsr.setSampleRate(sampleRate);
-
     juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
     spec.sampleRate = sampleRate;
     spec.numChannels = outputChannels;
 
     osc.prepareToPlay(spec);
-
-    //filter.prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
+    adsr.setSampleRate(sampleRate);
+    filter.prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
+    filterAdsr.setSampleRate(sampleRate);
 
     //masterGain.prepareToPlay(spec);
     //masterGain.prepare(spec);
@@ -67,18 +68,19 @@ void SynthVoice::updateGain(float gain)
     masterGain.updateGain(gain);
 }
 */
-/*
+
 void SynthVoice::updateFilter(int filterType, float filterFreq, float reso)
 {
-    //filter.setParams(filterType, filterFreq, reso);
-
-    //juce::Logger::writeToLog("FilterType is " + filterType);
-    //juce::Logger::writeToLog("FilterFreq is " + FilterData::getFilterFeq());
-
+    float mod = filterAdsr.getNextSample();
+    filter.setParams(filterType, filterFreq, reso, mod);
 }
-*/
 
-void SynthVoice::renderNextBlock(juce::AudioBuffer< float > &outputBuffer, int startSample, int numSamples) 
+void SynthVoice::updateFilterADSR(float attack, float decay, float sustain, float release)
+{
+    filterAdsr.updateADSR(attack, decay, sustain, release);
+}
+
+void SynthVoice::renderNextBlock(juce::AudioBuffer< float >& outputBuffer, int startSample, int numSamples)
 {
     jassert(isPerpared); //makes sure prepare to play has been called and is working properly
 
@@ -88,13 +90,15 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer< float > &outputBuffer, int s
     }
 
     clickBuffer.setSize(outputBuffer.getNumChannels(), numSamples, false, false, true);
+    filterAdsr.applyEnvelopeToBuffer(clickBuffer, 0, numSamples);
     clickBuffer.clear();
-    
+
     juce::dsp::AudioBlock<float> audioBlock{ clickBuffer };
 
     osc.getNextAudioBlock(audioBlock);
-    masterGain.process(juce::dsp::ProcessContextReplacing<float>(audioBlock));
     adsr.applyEnvelopeToBuffer(clickBuffer, 0, clickBuffer.getNumSamples());
+    filter.processFilter(clickBuffer);
+    masterGain.process(juce::dsp::ProcessContextReplacing<float>(audioBlock));
 
     for (int channel = 0; channel < outputBuffer.getNumChannels(); channel++)
     {
@@ -105,5 +109,4 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer< float > &outputBuffer, int s
             clearCurrentNote();
         }
     }
- 
 }
