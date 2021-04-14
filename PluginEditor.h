@@ -33,8 +33,9 @@ private:
     CompSynthAudioProcessor& audioProcessor;    //refernce to audio processor
     OscControls osc;
     AdsrControls adsr;
-    GainControls masterGain;
     FilterControls filter;
+    AdsrControls filterAdsr;
+    GainControls masterGain;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CompSynthAudioProcessorEditor)
 };

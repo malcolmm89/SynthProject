@@ -204,8 +204,6 @@ void CompSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
 
     synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 
-    //filter.setParams(filterType, filterFreq, reso);
-    //filter.processFilter(buffer);
 }
 
 //==============================================================================
@@ -258,22 +256,22 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompSynthAudioProcessor::cre
     params.push_back(std::make_unique<juce::AudioParameterFloat>("FMGAIN", "FM Gain", juce::NormalisableRange<float> { 0.0f, 1000.0f, 0.01f, 0.3f}, 0.0f));
 
     //Attack
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("ATTACK", "Attack", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.01f));    //paramID, paramName, paramRange, defaultValue
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("ATTACK", "Attack", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.1f));    //paramID, paramName, paramRange, defaultValue
     //Decay
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("DECAY", "Decay", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.01f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("DECAY", "Decay", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.1f));
     //Sustain
     params.push_back(std::make_unique<juce::AudioParameterFloat>("SUSTAIN", "Sustain", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 1.0f));
     //Release
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("RELEASE", "Release", juce::NormalisableRange<float> { 0.01f, 3.0f, }, 0.01f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("RELEASE", "Release", juce::NormalisableRange<float> { 0.01f, 3.0f, }, 0.4f));
 
     //Filter Attack
     params.push_back(std::make_unique<juce::AudioParameterFloat>("FILATTACK", "FilAttack", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.01f));    //paramID, paramName, paramRange, defaultValue
     //Filter Decay
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("FILDECAY", "FilDecay", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.1f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("FILDECAY", "FilDecay", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.01f));
     //Filter Sustain
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("FILSUSTAIN", "FilSustain", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.1f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("FILSUSTAIN", "FilSustain", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 1.0f));
     //Filter Release
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("FILRELEASE", "FilRelease", juce::NormalisableRange<float> { 0.01f, 3.0f, }, 0.4f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("FILRELEASE", "FilRelease", juce::NormalisableRange<float> { 0.01f, 3.0f, }, 0.01f));
 
     //Gain
     //params.push_back(std::make_unique<juce::AudioParameterFloat>("GAIN", "gain", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.07f));    //paramID, paramName, minValue, maxvalue, defaultValue
