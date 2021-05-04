@@ -62,17 +62,17 @@ void SynthVoice::updateADSR(float attack, float decay, float sustain, float rele
 {
     adsr.updateADSR(attack, decay, sustain, release);
 }
-/*
+
 void SynthVoice::updateGain(float gain)
 {
-    masterGain.updateGain(gain);
+    masterGain.setGain(gain);
 }
-*/
+
 
 void SynthVoice::updateFilter(int filterType, float filterFreq, float reso)
 {
-    float mod = filterAdsr.getNextSample();
-    filter.setParams(filterType, filterFreq, reso, mod);
+    float modEnv = filterAdsr.getNextSample();
+    filter.setParams(filterType, filterFreq, reso, modEnv);
 }
 
 void SynthVoice::updateFilterADSR(float attack, float decay, float sustain, float release)

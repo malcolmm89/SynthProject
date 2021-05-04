@@ -64,6 +64,7 @@ void OscData::getNextAudioBlock(juce::dsp::AudioBlock<float>& audioBlock)
     }
 
     process(juce::dsp::ProcessContextReplacing<float>(audioBlock));
+    gain.process(juce::dsp::ProcessContextReplacing<float>(audioBlock));
 }
 
 void OscData::setFmParams(float fGain, float freq)

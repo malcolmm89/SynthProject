@@ -12,7 +12,7 @@
 
 void FilterData::prepareToPlay(double samplesRate, int samplesPerBlock, int numChannels)
 {
-    filter.reset();
+    reset();
 
     juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;

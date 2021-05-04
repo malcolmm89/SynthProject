@@ -18,7 +18,7 @@ OscControls::OscControls(juce::AudioProcessorValueTreeState& vTreeState, juce::S
     oscSelector.addItemList(oscArray, 1);
     addAndMakeVisible(oscSelector);
     oscSelectorAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(vTreeState, selectorID, oscSelector);
-
+    //Gain
     setKnob(gainKnob, gainLabel, vTreeState, gainId, gainAttach);
     //fm
     setKnob(fmFreqKnob, fmFreaqLabel, vTreeState, fmFreqId, fmFreqAttach);
@@ -32,7 +32,7 @@ OscControls::~OscControls()
 
 void OscControls::paint (juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::lightcoral);
+    g.fillAll(juce::Colours::darkcyan);
     g.setColour(juce::Colours::white);
     g.drawRect(getLocalBounds());
 }

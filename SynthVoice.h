@@ -30,14 +30,14 @@ public:
 
     void updateADSR(float attack, float decay, float sustain, float release);   //Not pure virtual function
 
-    //void updateGain(float gain);
-
     void updateFilter(int filterType, float filterFreq, float reso);
     void updateFilterADSR(float attack, float decay, float sustain, float release);
 
     OscData& getOsc() { return osc; }
 
     GainData& getGain() { return masterGain; }
+
+    void updateGain(float gain);
 
     //FilterData& getFilter() { return filter; }
 

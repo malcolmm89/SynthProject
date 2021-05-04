@@ -30,10 +30,11 @@ void AdsrControls::paint (juce::Graphics& g)
     auto bounds = getLocalBounds().reduced(5);
     auto labelSpace = bounds.removeFromTop(25.0f);
     
-    g.fillAll(juce::Colours::firebrick);
+    g.fillAll(juce::Colours::darkcyan);
     g.setColour(juce::Colours::white);
     g.setFont(20.0f);
     g.drawText(controlsName, labelSpace.withX(5), juce::Justification::left);
+    g.drawRect(getLocalBounds());
 }
 
 void AdsrControls::resized()

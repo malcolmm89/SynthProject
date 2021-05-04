@@ -29,7 +29,7 @@ FilterControls::~FilterControls()
 
 void FilterControls::paint (juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::khaki);
+    g.fillAll(juce::Colours::darkcyan);
     g.setColour(juce::Colours::white);
     g.drawRect(getLocalBounds());
 }

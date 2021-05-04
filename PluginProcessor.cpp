@@ -113,10 +113,6 @@ void CompSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
         }
     }
 
-    //juce::dsp::ProcessSpec spec;
-    //spec.maximumBlockSize = samplesPerBlock;
-    //spec.sampleRate = sampleRate;
-    //spec.numChannels = getTotalNumOutputChannels();
 }
 
 void CompSynthAudioProcessor::releaseResources()
@@ -172,8 +168,7 @@ void CompSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
             auto& attack = *vTreeState.getRawParameterValue("ATTACK");      //auto = struct std::atomic<float>
             auto& decay = *vTreeState.getRawParameterValue("DECAY");        //.getRawParameterValue retutns pointer, 
             auto& sustain = *vTreeState.getRawParameterValue("SUSTAIN");    //& makes a refernce to pointer
-            auto& release = *vTreeState.getRawParameterValue("RELEASE");
-            //auto& gain = *vTreeState.getRawParameterValue("GAIN");
+            auto& release = *vTreeState.getRawParameterValue("RELEASE");    //* gets value pointed to by pointer
 
             auto& filterType = *vTreeState.getRawParameterValue("FILTERTYPE");
             auto& filterFreq = *vTreeState.getRawParameterValue("FILTERFREQ");
@@ -184,12 +179,15 @@ void CompSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
             auto& filterSustain = *vTreeState.getRawParameterValue("FILSUSTAIN");    
             auto& filterRelease = *vTreeState.getRawParameterValue("FILRELEASE");
 
+            //auto& gain = *vTreeState.getRawParameterValue("GAIN");
+
             voice->getOsc().setOscType(oscType);
             voice->getOsc().setGain(oscGain);
             voice->getOsc().setFmParams(fmGain, fmFreq);
-            voice->updateADSR(attack, decay, sustain, release); //atomic /////// -> access members of a structure through a pointer (. for pointer)
+            voice->updateADSR(attack, decay, sustain, release); /////// -> access members of a structure through a pointer (. for pointer)
             voice->updateFilter(filterType, filterFreq, reso);
             voice->updateFilterADSR(filterAttack, filterDecay, filterSustain, filterRelease);
+            //voice->updateGain(gain);
         }
 
     }
@@ -249,11 +247,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompSynthAudioProcessor::cre
     //Osc Select
     params.push_back(std::make_unique<juce::AudioParameterChoice>("OSCTYPE", "Osc1", oscArray, 1));
     //Osc Gain
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("OSCGAIN", "Osc Gain", juce::NormalisableRange<float> { -40.0f, 0.2f, 0.1f, }, -25.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("OSCGAIN", "Osc Gain", juce::NormalisableRange<float> { -40.0f, 1.0f, 0.1f, }, 1.0f));
     //FM
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("FMFREQ", "FM Freq", juce::NormalisableRange<float> { 0.0f, 1000.0f, 0.01f, 0.3f}, 0.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("FMFREQ", "FM Freq", juce::NormalisableRange<float> { 0.0f, 1000.0f, 0.01f, 0.25f}, 0.0f));
     //FM Gain
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("FMGAIN", "FM Gain", juce::NormalisableRange<float> { 0.0f, 1000.0f, 0.01f, 0.3f}, 0.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("FMGAIN", "FM Gain", juce::NormalisableRange<float> { 0.0f, 1000.0f, 0.01f, 0.25f}, 0.0f));
 
     //Attack
     params.push_back(std::make_unique<juce::AudioParameterFloat>("ATTACK", "Attack", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.1f));    //paramID, paramName, paramRange, defaultValue
@@ -273,15 +271,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompSynthAudioProcessor::cre
     //Filter Release
     params.push_back(std::make_unique<juce::AudioParameterFloat>("FILRELEASE", "FilRelease", juce::NormalisableRange<float> { 0.01f, 3.0f, }, 0.01f));
 
-    //Gain
-    //params.push_back(std::make_unique<juce::AudioParameterFloat>("GAIN", "gain", juce::NormalisableRange<float> { 0.01f, 1.0f, }, 0.07f));    //paramID, paramName, minValue, maxvalue, defaultValue
-
     //Filter Select
     params.push_back(std::make_unique<juce::AudioParameterChoice>("FILTERTYPE", "Filter Type", filterArray, 0));
     //Filter Freq
     params.push_back(std::make_unique<juce::AudioParameterFloat>("FILTERFREQ", "Filter Freq", juce::NormalisableRange<float> { 20.0f, 20000.0f, 0.1f, 0.6f, }, 200.0f));
     //Resonence
     params.push_back(std::make_unique<juce::AudioParameterFloat>("RESO", "Reso", juce::NormalisableRange<float> { 0.1f, 10.0f, 0.1f, }, 0.1f));
+
+    //Gain
+    //params.push_back(std::make_unique<juce::AudioParameterFloat>("GAIN", "gain", juce::NormalisableRange<float> { 0.0f, 1.0f, 0.01f, }, 0.07f)); 
 
     return { params.begin(), params.end() };
 

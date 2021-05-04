@@ -15,7 +15,7 @@ class GainData : public juce::dsp::Gain<float>
 {
 public:
     void prepareToPlay(juce::dsp::ProcessSpec& spec);
-    void updateGain(float gain);
+    void setGain(float gain);
     void getNextAudioBlock(juce::dsp::AudioBlock<float>& audioBlock);
 
 private:
